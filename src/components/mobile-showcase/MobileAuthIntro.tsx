@@ -171,7 +171,7 @@ export default function MobileAuthIntro({
         </AnimatePresence>
 
         {/* CTAs */}
-        <form onSubmit={submitForm} noValidate className="mt-8 space-y-3">
+        <form onSubmit={submitForm} noValidate className="mt-8 space-y-4">
           {/* Google button — collapses away when expanded */}
           <AnimatePresence initial={false}>
             {!expanded && (

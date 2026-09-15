@@ -971,7 +971,7 @@ const AuthPage = () => {
                         </button>
                       </div>
 
-                      <div className="flex items-center gap-3 my-5">
+                      <div className="flex items-center gap-3 my-7">
                         <div className="flex-1 h-px bg-foreground/10" />
                         <span className="text-[10px] text-foreground/65 uppercase tracking-[0.25em]">
                           {authT("or")}
@@ -979,7 +979,7 @@ const AuthPage = () => {
                         <div className="flex-1 h-px bg-foreground/10" />
                       </div>
 
-                      <div className="space-y-2.5">
+                      <div className="space-y-3.5">
                         <button
                           onClick={handleGoogleLogin}
                           className={socialCls}
