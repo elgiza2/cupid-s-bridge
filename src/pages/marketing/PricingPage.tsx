@@ -49,7 +49,8 @@ import { brandText, getZoneBrand } from "@/lib/zoneBrand";
 import { isEgMode } from "@/lib/egMode";
 import { isArabBilling } from "@/lib/payRegion";
 import { translateExactText, useUserLang } from "@/lib/authI18n";
-import { detectLocalMoney, formatLocalPrice } from "@/lib/localCurrency";
+import { detectLocalMoney, formatLocalAmount } from "@/lib/localCurrency";
+import { useIntroTrialEligible } from "@/lib/introTrial";
 
 const LandingFooter = lazy(() => import("@/components/landing/LandingFooter"));
 const PaymentGatewaySheet = lazy(() => import("@/components/billing/PaymentGatewaySheet"));
