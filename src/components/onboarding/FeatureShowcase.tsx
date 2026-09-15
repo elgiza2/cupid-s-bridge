@@ -6,7 +6,7 @@ import { setUserLang } from "@/lib/authI18n";
 import welcomeResearch from "@/assets/welcome-character-research-v2.jpg";
 import welcomeCreate from "@/assets/welcome-character-create-v2.jpg";
 import welcomePro from "@/assets/welcome-pro-card-blue.jpg";
-import welcomeTrial from "@/assets/welcome-trial-editorial-v2.jpg";
+import welcomeTrial from "@/assets/welcome-trial-editorial-v3.jpg";
 import "@/styles/welcome-showcase.css";
 
 const AUTH_HERO_POSTER = "/route-assets/auth/auth-hero-v6-poster.jpg";
@@ -265,27 +265,27 @@ function ProScreen() {
 }
 function TrialScreen() {
   return (
-    <div className="mx-auto flex h-full w-full max-w-md flex-col pb-44 sm:max-w-lg">
-      <div className="relative min-h-[220px] w-full flex-1 overflow-hidden">
+    <div className="mx-auto flex h-full min-h-0 w-full max-w-md flex-col pb-[188px] sm:max-w-lg">
+      <div className="relative min-h-[180px] w-full flex-1 overflow-hidden">
         <img
           src={welcomeTrial}
-          alt="Model holding a glowing translucent membership card"
+          alt="Model holding a translucent membership card"
           width={1024}
           height={1280}
           loading="eager"
           fetchPriority="high"
-          className="h-full w-full object-cover object-[center_25%]"
+          className="h-full w-full object-cover object-[center_20%]"
         />
         <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-[hsl(var(--welcome-paper))] to-transparent" />
       </div>
 
       <div className="relative z-10 shrink-0 px-7 pt-4 text-left">
-        <h2 className="max-w-[330px] text-[34px] font-extrabold leading-[1.05] text-[hsl(var(--welcome-ink))] sm:text-[40px]">
+        <h2 className="max-w-[330px] break-words text-[32px] font-extrabold leading-[1.06] text-[hsl(var(--welcome-ink))] sm:text-[40px]">
           3 days for $1.
         </h2>
-        <p className="mt-3 max-w-[340px] text-[15px] font-medium leading-[1.45] text-[hsl(var(--welcome-muted))] sm:text-[16px]">
-          Get 3 premium images every day during your trial. Then continue for $7 in your first
-          month with unlimited premium images, or cancel anytime.
+        <p className="mt-2.5 max-w-[330px] break-words text-[14px] font-medium leading-[1.45] text-[hsl(var(--welcome-muted))] sm:text-[16px]">
+          3 premium images a day during the trial. Then $7 for your first month with unlimited
+          premium images — cancel anytime.
         </p>
       </div>
     </div>
