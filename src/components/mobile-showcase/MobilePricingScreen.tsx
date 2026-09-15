@@ -415,15 +415,15 @@ export default function MobilePricingScreen({
                     {/* The local currency is the price, not a footnote: the
                         dollar amount moves to the small secondary line. */}
                     <span className={`${compact ? "text-[15px]" : "text-[16px]"} font-semibold`} style={{ color: c.text }}>
-                      {localAmount(opt.price) ?? `$${opt.price}`}
+                      {localPrice(opt.price) ?? `$${opt.price}`}
                     </span>
                     <span className="text-[11px]" style={{ color: c.muted }}>
                       {opt.unit}
                     </span>
                     <span className="text-[11.5px] line-through" style={{ color: c.faint }}>
-                      {localAmount(opt.strike) ?? `$${opt.strike}`}
+                      {localPrice(opt.strike) ?? `$${opt.strike}`}
                     </span>
-                    {localAmount(opt.price) ? (
+                    {localPrice(opt.price) ? (
                       <span className="text-[11px]" style={{ color: c.faint }}>
                         ${opt.price}
                       </span>

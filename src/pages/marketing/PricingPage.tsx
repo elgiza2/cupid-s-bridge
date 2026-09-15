@@ -49,7 +49,8 @@ import { brandText, getZoneBrand } from "@/lib/zoneBrand";
 import { isEgMode } from "@/lib/egMode";
 import { isArabBilling } from "@/lib/payRegion";
 import { translateExactText, useUserLang } from "@/lib/authI18n";
-import { detectLocalMoney, formatLocalPrice } from "@/lib/localCurrency";
+import { detectLocalMoney, formatLocalAmount } from "@/lib/localCurrency";
+import { useIntroTrialEligible } from "@/lib/introTrial";
 
 const LandingFooter = lazy(() => import("@/components/landing/LandingFooter"));
 const PaymentGatewaySheet = lazy(() => import("@/components/billing/PaymentGatewaySheet"));
@@ -214,6 +215,9 @@ const PricingPage = () => {
   useEffect(() => {
     setLocalMoney(detectLocalMoney());
   }, []);
+  // The $1 trial is a one-time offer; after it is used the card shows the $7
+  // first month in its place and the trial never returns.
+  const trialEligible = useIntroTrialEligible();
   const [sidebarCollapsed] = useSidebarCollapsed();
   const PLANS = brandText(RAW_PLANS);
   const FAQS = brandText(RAW_FAQS);
@@ -914,7 +918,8 @@ const PricingPage = () => {
                     // Monthly Pro leads with the $1 / 3-day trial: it renews into the
                     // $7 intro month automatically, so the intro price is the follow-up,
                     // not the headline.
-                    const showTrialOffer = p.tier === "pro" && !isYearly && !isCurrent;
+                    const showTrialOffer =
+                      p.tier === "pro" && !isYearly && !isCurrent && trialEligible;
                     const isLower = thisIdx < curIdx;
                     const ctaLabel = isCurrent
                       ? "Current plan"
@@ -939,52 +944,64 @@ const PricingPage = () => {
                             {p.name}
                           </h3>
 
-                          <div className="flex items-baseline gap-1.5">
-                            <span className="font-garamond text-2xl text-foreground">$</span>
-                            <CountUp
-                              value={showTrialOffer ? TRIAL_PRICE : price}
-                              className="font-garamond text-6xl leading-none text-foreground tabular-nums"
-                            />
-                            <span
-                              className="text-foreground text-xs ml-1 uppercase"
-                              style={{ letterSpacing: "0.2em" }}
-                            >
-                              /
-                              {showTrialOffer
-                                ? "3 days"
-                                : isProFirstMonth
-                                  ? "1st mo"
-                                  : isYearly
-                                    ? "year"
-                                    : "month"}
-                            </span>
-                          </div>
+                          {(() => {
+                            const shown = showTrialOffer ? TRIAL_PRICE : price;
+                            const struck = showTrialOffer ? INTRO_PRICE : strikePrice;
+                            // The visitor's own currency is the headline price;
+                            // the dollar amount stays as the small reference below.
+                            const localShown = formatLocalAmount(shown, localMoney);
+                            const localStruck = formatLocalAmount(struck, localMoney);
+                            return (
+                              <>
+                                <div className="flex items-baseline gap-1.5">
+                                  {localShown ? (
+                                    <span className="font-garamond text-5xl leading-none text-foreground tabular-nums">
+                                      {localShown}
+                                    </span>
+                                  ) : (
+                                    <>
+                                      <span className="font-garamond text-2xl text-foreground">$</span>
+                                      <CountUp
+                                        value={shown}
+                                        className="font-garamond text-6xl leading-none text-foreground tabular-nums"
+                                      />
+                                    </>
+                                  )}
+                                  <span
+                                    className="text-foreground text-xs ml-1 uppercase"
+                                    style={{ letterSpacing: "0.2em" }}
+                                  >
+                                    /
+                                    {showTrialOffer
+                                      ? "3 days"
+                                      : isProFirstMonth
+                                        ? "1st mo"
+                                        : isYearly
+                                          ? "year"
+                                          : "month"}
+                                  </span>
+                                </div>
 
-                          <div className="flex items-center gap-2 mt-3">
-                            <span className="text-xs text-foreground/85 line-through tabular-nums">
-                              $<CountUp value={showTrialOffer ? INTRO_PRICE : strikePrice} />
-                            </span>
-                            <span
-                              className="text-[10px] uppercase px-2 py-0.5 rounded-full border border-foreground/40 text-foreground font-light"
-                              style={{ letterSpacing: "0.18em" }}
-                            >
-                              {showTrialOffer ? "3-day trial" : discountLabel}
-                            </span>
-                          </div>
+                                <div className="flex items-center gap-2 mt-3">
+                                  <span className="text-xs text-foreground/85 line-through tabular-nums">
+                                    {localStruck ?? `$${struck}`}
+                                  </span>
+                                  <span
+                                    className="text-[10px] uppercase px-2 py-0.5 rounded-full border border-foreground/40 text-foreground font-light"
+                                    style={{ letterSpacing: "0.18em" }}
+                                  >
+                                    {showTrialOffer ? "3-day trial" : discountLabel}
+                                  </span>
+                                </div>
 
-                          {localMoney
-                            ? (() => {
-                                const local = formatLocalPrice(
-                                  showTrialOffer ? TRIAL_PRICE : price,
-                                  localMoney,
-                                );
-                                return local ? (
+                                {localShown ? (
                                   <p className="text-[11px] text-foreground/70 mt-2 tabular-nums font-light">
-                                    {local}
+                                    ${shown} USD
                                   </p>
-                                ) : null;
-                              })()
-                            : null}
+                                ) : null}
+                              </>
+                            );
+                          })()}
 
 
 
@@ -1058,23 +1075,15 @@ const PricingPage = () => {
                             </button>
                           )}
 
+                          {/* One offer at a time: while the $1 trial is available it
+                              stands in for the $7 first month, so there is no second
+                              box competing with it. */}
                           {showTrialOffer && (
-                            <>
-                              <button
-                                type="button"
-                                onClick={() => handleSubscribe(p.tier)}
-                                disabled={loadingTier !== null}
-                                className="mt-3 w-full py-3 rounded-full border border-foreground/40 text-[11px] uppercase font-normal text-foreground disabled:opacity-50 disabled:cursor-not-allowed"
-                                style={{ letterSpacing: "0.18em" }}
-                              >
-                                {`Skip the trial — $${INTRO_PRICE} first month`}
-                              </button>
-                              <p className="text-[10px] text-foreground/75 mt-2 leading-relaxed">
-                                Trial: 3 premium images per day. It renews automatically after{" "}
-                                {TRIAL_DAYS} days at ${INTRO_PRICE} for your first month, then $
-                                {p.monthlyPrice}/month with unlimited images. Cancel anytime.
-                              </p>
-                            </>
+                            <p className="text-[10px] text-foreground/75 mt-2 leading-relaxed">
+                              Trial: 3 premium images per day. It renews automatically after{" "}
+                              {TRIAL_DAYS} days at ${INTRO_PRICE} for your first month, then $
+                              {p.monthlyPrice}/month with unlimited images. Cancel anytime.
+                            </p>
                           )}
 
                           {(() => {
