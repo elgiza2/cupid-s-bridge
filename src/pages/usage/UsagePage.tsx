@@ -1,10 +1,14 @@
-/** @doc Usage — plan card, credit balance and dated credit-usage history. */
+/** @doc Usage — plan, live credit balance, daily allowance and real credit history. */
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Coins, ChevronLeft, CalendarClock, HelpCircle, Loader2 } from "lucide-react";
+import { Coins, ChevronLeft, CalendarClock, Gauge, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { useCredits } from "@/hooks/useCredits";
 import { goBackOr } from "@/lib/navigation";
+import {
+  claimDailyCredits,
+  fetchCreditOverview,
+  type CreditOverview,
+} from "@/lib/creditsSystem";
 
 type Tx = {
   id: string;
@@ -13,8 +17,6 @@ type Tx = {
   action_type: string | null;
   created_at: string;
 };
-
-const DAILY_REFRESH = 300;
 
 /** Never expose upstream provider or model names in the UI. */
 const cleanLabel = (raw: string | null, action: string | null) => {
@@ -35,48 +37,65 @@ const cleanLabel = (raw: string | null, action: string | null) => {
 const dayLabel = (iso: string) =>
   new Date(iso).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
 
+const timeLabel = (iso: string) =>
+  new Date(iso).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
 
 const UsagePage = () => {
   const navigate = useNavigate();
-  const { credits, plan } = useCredits();
+  const [overview, setOverview] = useState<CreditOverview | null>(null);
   const [rows, setRows] = useState<Tx[]>([]);
   const [loading, setLoading] = useState(true);
-
-  const planLabel = (plan || "free").toLowerCase() === "free" ? "Free" : (plan || "").toUpperCase();
-  const isPaidPlan = (plan || "free").toLowerCase() !== "free";
-  // Very large balances read as noise; show them grouped. On a paid plan a huge
-  // balance means Unlimited, and an empty balance is covered by the plan itself.
-  const creditsLabel =
-    credits === null
-      ? "—"
-      : isPaidPlan && credits >= 100_000_000
-        ? "Unlimited"
-        : isPaidPlan && credits <= 0
-          ? "Included in plan"
-          : credits.toLocaleString("en-US");
+  const [signedOut, setSignedOut] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) {
-        if (!cancelled) setLoading(false);
+        if (!cancelled) {
+          setSignedOut(true);
+          setLoading(false);
+        }
         return;
       }
-      const { data } = await supabase
-        .from("credit_transactions")
-        .select("id, amount, description, action_type, created_at")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false })
-        .limit(80);
+      // Opening this screen is also the moment to hand out today's credits.
+      await claimDailyCredits();
+      const [ov, tx] = await Promise.all([
+        fetchCreditOverview(),
+        supabase
+          .from("credit_transactions")
+          .select("id, amount, description, action_type, created_at")
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false })
+          .limit(80),
+      ]);
       if (cancelled) return;
-      setRows((data as Tx[]) ?? []);
+      setOverview(ov);
+      setRows((tx.data as Tx[]) ?? []);
       setLoading(false);
     })();
     return () => {
       cancelled = true;
     };
   }, []);
+
+  const plan = (overview?.plan ?? "free").toLowerCase();
+  const isPaidPlan = plan !== "free";
+  const planLabel = plan === "free" ? "Free" : plan.toUpperCase();
+  const credits = overview?.credits ?? null;
+  const creditsLabel =
+    credits === null ? "—" : Math.round(credits).toLocaleString("en-US");
+
+  const refreshLabel = useMemo(() => {
+    if (!overview?.nextRefresh) return null;
+    const at = new Date(overview.nextRefresh);
+    const mins = Math.max(0, Math.round((at.getTime() - Date.now()) / 60000));
+    const h = Math.floor(mins / 60);
+    const m = mins % 60;
+    return h > 0 ? `in ${h}h ${m}m` : `in ${m}m`;
+  }, [overview?.nextRefresh]);
 
   const groups = useMemo(() => {
     const map = new Map<string, Tx[]>();
@@ -110,28 +129,46 @@ const UsagePage = () => {
 
             <div className="usg-line">
               <Coins className="usg-licon" />
-              <span className="usg-llabel">Credits</span>
-              <HelpCircle className="usg-lhelp" />
-
+              <span className="usg-llabel">
+                Credits
+                <small>Available to spend right now</small>
+              </span>
               <span className="usg-lvalue">{creditsLabel}</span>
             </div>
 
-            <div className="usg-line usg-line-sub">
-              <span className="usg-llabel usg-muted">Free credits</span>
-              <span className="usg-lvalue usg-muted">{creditsLabel}</span>
-            </div>
             <div className="usg-line">
               <CalendarClock className="usg-licon" />
               <span className="usg-llabel">
-                Daily credit refresh
-                <small>Refreshes daily at 00:00 to {DAILY_REFRESH}</small>
+                Daily credits
+                <small>
+                  {overview
+                    ? `Tops up to ${overview.dailyAllowance} every day${refreshLabel ? ` · next ${refreshLabel}` : ""}`
+                    : "—"}
+                </small>
               </span>
-              <span className="usg-lvalue">{DAILY_REFRESH}</span>
+              <span className="usg-lvalue">{overview ? overview.dailyAllowance : "—"}</span>
+            </div>
+
+            <div className="usg-line">
+              <Gauge className="usg-licon" />
+              <span className="usg-llabel">
+                Used today
+                <small>
+                  {overview
+                    ? `${overview.tasksToday} ${overview.tasksToday === 1 ? "task" : "tasks"} · ${Math.round(overview.spentThisMonth)} this month`
+                    : "—"}
+                </small>
+              </span>
+              <span className="usg-lvalue">
+                {overview ? Math.round(overview.spentToday) : "—"}
+              </span>
             </div>
           </section>
 
           {loading ? (
             <div className="usg-state"><Loader2 className="w-5 h-5 animate-spin" /></div>
+          ) : signedOut ? (
+            <div className="usg-state">Sign in to see your credits</div>
           ) : groups.length === 0 ? (
             <div className="usg-state">No usage yet</div>
           ) : (
@@ -139,12 +176,23 @@ const UsagePage = () => {
               <section key={day} className="usg-group usg-rise" style={{ animationDelay: `${60 + gi * 40}ms` }}>
                 <h2 className="usg-day">{day}</h2>
                 <div className="usg-card usg-list">
-                  {items.map((it) => (
-                    <div key={it.id} className="usg-item">
-                      <span className="usg-item-title">{cleanLabel(it.description, it.action_type)}</span>
-                      <span className="usg-item-cost">{Math.abs(Number(it.amount) || 0)}</span>
-                    </div>
-                  ))}
+                  {items.map((it) => {
+                    const amount = Number(it.amount) || 0;
+                    // Grants are stored as negatives, spending as positives.
+                    const isGrant = amount < 0;
+                    return (
+                      <div key={it.id} className="usg-item">
+                        <span className="usg-item-title">
+                          {cleanLabel(it.description, it.action_type)}
+                          <small>{timeLabel(it.created_at)}</small>
+                        </span>
+                        <span className={`usg-item-cost ${isGrant ? "usg-plus" : ""}`}>
+                          {isGrant ? "+" : "−"}
+                          {Math.round(Math.abs(amount))}
+                        </span>
+                      </div>
+                    );
+                  })}
                 </div>
               </section>
             ))
