@@ -342,13 +342,15 @@ const ChatMessageItemImpl = ({
             (!!msg.docsClarify ||
               hasRunningTool ||
               mediaPending ||
-              // An agent turn that is still working externally (cloud computer,
-              // long run, operator) has only written an interim note so far.
-              // Rating / copy / regenerate must wait for the real final answer.
+              // Rating / copy / regenerate belong to the finished answer only.
+              // Interim agent notes and every earlier assistant turn stay clean;
+              // the action row appears once, on the very last assistant message.
+              !isLastAssistant ||
               !!msg.longRunId ||
               !!msg.computerTaskId ||
               !!msg.operatorRunId ||
-              (isLastAssistant && (isLoading || !!isThinking)))
+              isLoading ||
+              !!isThinking)
           }
         />
       )}

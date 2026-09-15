@@ -86,6 +86,17 @@ export function detectLocalMoney(): Money | null {
   return country ? (CURRENCY_BY_COUNTRY[country] ?? null) : null;
 }
 
+export type { Money };
+
+/**
+ * "1,400 EGP" — the same converted amount without the "≈" prefix, for places
+ * where the local price is the headline instead of a hint.
+ */
+export function formatLocalAmount(usd: number, money: Money | null): string | null {
+  const s = formatLocalPrice(usd, money);
+  return s ? s.replace(/^≈\s*/, "") : null;
+}
+
 /**
  * "≈ 1,400 EGP" for a USD amount, or null when the device has no mapped
  * currency (or is already on USD).
