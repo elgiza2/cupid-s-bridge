@@ -16,7 +16,8 @@ import { Link, useNavigate } from "react-router-dom";
 import MegsyStar from "@/components/branding/MegsyStar";
 import { MobileSidebarButton } from "@/components/shared/MobileSidebarButton";
 import { useUserLang } from "@/lib/authI18n";
-import { detectLocalMoney, formatLocalPrice } from "@/lib/localCurrency";
+import { detectLocalMoney, formatLocalAmount } from "@/lib/localCurrency";
+import { useIntroTrialEligible } from "@/lib/introTrial";
 import { useUserPlan } from "@/hooks/useUserPlan";
 import { getDisplayPrice, getPlan, type PlanTier } from "@/data/pricingData";
 import {
@@ -31,15 +32,15 @@ function MegsyFeatureIcon({ className, style }: { className?: string; style?: Re
 }
 
 /**
- * "≈ 50 EGP" beside the dollar price, from the device's own country. Resolved
- * after mount so the first paint matches the server markup.
+ * "50 EGP" for a dollar amount, from the device's own country. Resolved after
+ * mount so the first paint matches the server markup.
  */
 function useLocalPrice() {
   const [money, setMoney] = useState<ReturnType<typeof detectLocalMoney>>(null);
   useEffect(() => {
     setMoney(detectLocalMoney());
   }, []);
-  return (usd: number) => formatLocalPrice(usd, money);
+  return (usd: number) => formatLocalAmount(usd, money);
 }
 
 
@@ -446,14 +447,14 @@ export default function MobilePricingScreen({
             className={`text-center leading-[1.45] ${compact ? "mb-2 min-h-[26px] text-[10px]" : "mb-2.5 min-h-[30px] text-[10.5px]"}`}
             style={{ color: c.faint }}
           >
-            {trialSelected && !alreadySubscribed ? trialCopy.fine : t.fine}
+            {trialActive ? trialCopy.fine : t.fine}
           </p>
           <button
             type="button"
             onClick={() =>
               alreadySubscribed
                 ? navigate("/settings/billing")
-                : onSubscribe("pro", { trial: trialSelected })
+                : onSubscribe("pro", { trial: trialActive })
             }
             disabled={isLoading}
             className={`flex w-full items-center justify-center rounded-[16px] px-6 font-semibold leading-none transition active:scale-[0.99] disabled:opacity-60 ${
@@ -464,7 +465,7 @@ export default function MobilePricingScreen({
             {isLoading ? (
               <span className="h-4 w-4 animate-spin rounded-full border-2 border-current/30 border-t-current" />
             ) : (
-              trialSelected && !alreadySubscribed ? trialCopy.cta : t.cta
+              trialActive ? trialCopy.cta : t.cta
             )}
           </button>
           <nav
