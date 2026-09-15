@@ -369,9 +369,7 @@ export default function MobilePricingScreen({
           style={{ animationDelay: "200ms" }}
         >
           {options.map((opt) => {
-            const selected = opt.trial
-              ? trialSelected
-              : !trialSelected && isYearly === opt.yearly;
+            const selected = isYearly === opt.yearly;
             return (
               <button
                 key={opt.key}
