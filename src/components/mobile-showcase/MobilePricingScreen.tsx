@@ -374,10 +374,7 @@ export default function MobilePricingScreen({
               <button
                 key={opt.key}
                 type="button"
-                onClick={() => {
-                  setTrialSelected(opt.trial);
-                  if (!opt.trial) onToggleYearly(opt.yearly);
-                }}
+                onClick={() => onToggleYearly(opt.yearly)}
                 className={`flex w-full items-center gap-3 rounded-[18px] px-4 text-start transition-all duration-200 ${
                   compact ? "py-2" : "py-2.5"
                 } ${isAr ? "flex-row-reverse" : ""}`}
