@@ -50,7 +50,7 @@ import { isEgMode } from "@/lib/egMode";
 import { isArabBilling } from "@/lib/payRegion";
 import { translateExactText, useUserLang } from "@/lib/authI18n";
 import { detectLocalMoney, formatLocalAmount } from "@/lib/localCurrency";
-import { useIntroTrialEligible } from "@/lib/introTrial";
+import { useIntroTrialEligible, markIntroTrialUsed } from "@/lib/introTrial";
 
 const LandingFooter = lazy(() => import("@/components/landing/LandingFooter"));
 const PaymentGatewaySheet = lazy(() => import("@/components/billing/PaymentGatewaySheet"));
@@ -380,6 +380,8 @@ const PricingPage = () => {
           throw new Error(kErr?.message || kData?.error || "Checkout failed");
         }
         markCheckoutOpened(interval);
+        // The $1 trial is once per account: never offer it again on this device.
+        if (trial) markIntroTrialUsed();
         window.location.href = kData.checkout_url;
         return;
       }
@@ -412,6 +414,7 @@ const PricingPage = () => {
       }
       if (data?.url) {
         markCheckoutOpened(interval);
+        if (trial) markIntroTrialUsed();
         window.location.href = data.url;
       } else throw new Error(data?.error || "Checkout failed");
     } catch (e: any) {

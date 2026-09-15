@@ -2765,6 +2765,27 @@ export type Database = {
         }
         Relationships: []
       }
+      daily_credit_grants: {
+        Row: {
+          amount: number
+          created_at: string
+          grant_date: string
+          user_id: string
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          grant_date?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          grant_date?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       daily_free_usage: {
         Row: {
           created_at: string
@@ -11074,6 +11095,7 @@ export type Database = {
         }
         Returns: Json
       }
+      claim_daily_credits: { Args: never; Returns: Json }
       claim_promo_slot: { Args: never; Returns: number }
       claim_referral_milestone: { Args: never; Returns: Json }
       claim_referral_signup: { Args: { p_code: string }; Returns: Json }
@@ -11180,6 +11202,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      daily_credit_allowance: { Args: { _user_id: string }; Returns: number }
       deduct_credits: {
         Args: {
           p_action_type: string
@@ -11207,6 +11230,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      get_credit_overview: { Args: never; Returns: Json }
       get_integration_secret: {
         Args: {
           _all_tokens?: string[]
