@@ -57,6 +57,12 @@ applyPerfTier();
 
 import { reportError, friendlyUserMessage, sanitizeErrorMessage } from "@/lib/errors";
 import { toast as sonnerToast } from "sonner";
+import { installEdgeFunctionProxy } from "@/lib/edgeProxy";
+
+// Hosts outside the edge functions' CORS allowlist (Vercel, custom domains)
+// must reach the functions through our own origin, or every call fails with
+// "Failed to fetch". Installed before anything issues a request.
+installEdgeFunctionProxy();
 import { patchSupabaseAuth } from "@/integrations/supabase/patchAuth";
 import { installGlobalLinkPrefetch } from "@/lib/globalLinkPrefetch";
 import { registerAppServiceWorker } from "@/lib/registerSW";
