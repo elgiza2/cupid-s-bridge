@@ -25,7 +25,6 @@ import { Route as ApiReadUrlRouteImport } from './routes/api/read-url'
 import { Route as ApiRenderPdfRouteImport } from './routes/api/render-pdf'
 import { Route as ApiTranscribeRouteImport } from './routes/api/transcribe'
 import { Route as ApiWebSearchRouteImport } from './routes/api/web-search'
-import { Route as ApiPublicEdgeSplatRouteImport } from './routes/api/public/edge/$'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -107,11 +106,6 @@ const ApiWebSearchRoute = ApiWebSearchRouteImport.update({
   path: '/api/web-search',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiPublicEdgeSplatRoute = ApiPublicEdgeSplatRouteImport.update({
-  id: '/api/public/edge/$',
-  path: '/api/public/edge/$',
-  getParentRoute: () => rootRouteImport,
-} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -130,7 +124,6 @@ export interface FileRoutesByFullPath {
   '/api/render-pdf': typeof ApiRenderPdfRoute
   '/api/transcribe': typeof ApiTranscribeRoute
   '/api/web-search': typeof ApiWebSearchRoute
-  '/api/public/edge/$': typeof ApiPublicEdgeSplatRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -149,7 +142,6 @@ export interface FileRoutesByTo {
   '/api/render-pdf': typeof ApiRenderPdfRoute
   '/api/transcribe': typeof ApiTranscribeRoute
   '/api/web-search': typeof ApiWebSearchRoute
-  '/api/public/edge/$': typeof ApiPublicEdgeSplatRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -169,7 +161,6 @@ export interface FileRoutesById {
   '/api/render-pdf': typeof ApiRenderPdfRoute
   '/api/transcribe': typeof ApiTranscribeRoute
   '/api/web-search': typeof ApiWebSearchRoute
-  '/api/public/edge/$': typeof ApiPublicEdgeSplatRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -190,7 +181,6 @@ export interface FileRouteTypes {
     | '/api/render-pdf'
     | '/api/transcribe'
     | '/api/web-search'
-    | '/api/public/edge/$'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -209,7 +199,6 @@ export interface FileRouteTypes {
     | '/api/render-pdf'
     | '/api/transcribe'
     | '/api/web-search'
-    | '/api/public/edge/$'
   id:
     | '__root__'
     | '/'
@@ -228,7 +217,6 @@ export interface FileRouteTypes {
     | '/api/render-pdf'
     | '/api/transcribe'
     | '/api/web-search'
-    | '/api/public/edge/$'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -248,7 +236,6 @@ export interface RootRouteChildren {
   ApiRenderPdfRoute: typeof ApiRenderPdfRoute
   ApiTranscribeRoute: typeof ApiTranscribeRoute
   ApiWebSearchRoute: typeof ApiWebSearchRoute
-  ApiPublicEdgeSplatRoute: typeof ApiPublicEdgeSplatRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -365,13 +352,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiWebSearchRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/edge/$': {
-      id: '/api/public/edge/$'
-      path: '/api/public/edge/$'
-      fullPath: '/api/public/edge/$'
-      preLoaderRoute: typeof ApiPublicEdgeSplatRouteImport
-      parentRoute: typeof rootRouteImport
-    }
   }
 }
 
@@ -392,7 +372,6 @@ const rootRouteChildren: RootRouteChildren = {
   ApiRenderPdfRoute: ApiRenderPdfRoute,
   ApiTranscribeRoute: ApiTranscribeRoute,
   ApiWebSearchRoute: ApiWebSearchRoute,
-  ApiPublicEdgeSplatRoute: ApiPublicEdgeSplatRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

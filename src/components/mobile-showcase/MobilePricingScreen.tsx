@@ -225,20 +225,22 @@ export default function MobilePricingScreen({
         ctaFg: "#0a0a0a",
       };
 
-  // The $1 / 3-day trial is a separate choice alongside monthly & yearly.
-  // Lead with the introductory offer so it cannot be missed on first view.
-  const [trialSelected, setTrialSelected] = useState(true);
+  // The $1 / 3-day trial is not a box of its own: while the account has never
+  // used it, it *is* the monthly offer. After it is used the same box shows the
+  // $7 first month instead, and the trial never comes back.
+  const trialEligible = useIntroTrialEligible() && !alreadySubscribed;
+  const trialActive = trialEligible && !isYearly;
 
   const trialCopy = isAr
     ? {
-        label: "3 أيام مقابل 1$",
+        label: "الشهر الأول — 3 أيام بـ 1$",
         badge: "عرض البداية",
         unit: "/ 3 أيام",
         fine: `1$ لمدة 3 أيام، وخلال التجربة 3 صور متقدمة يوميًا. بعدها ${`$${INTRO_PRICE}`} للشهر الأول ثم $${pro.monthlyPrice}/شهر مع صور بلا حدود. يمكنك الإلغاء في أي وقت.`,
         cta: "ابدأ 3 أيام بـ 1$",
       }
     : {
-        label: "3 days for $1",
+        label: "Monthly — 3 days for $1",
         badge: "INTRO OFFER",
         unit: "/ 3 days",
         fine: `$1 for 3 days, with 3 premium images per day during the trial. Then $${INTRO_PRICE}.00 for your first month and $${pro.monthlyPrice}.00/month after, with unlimited images. Cancel anytime.`,
@@ -247,28 +249,16 @@ export default function MobilePricingScreen({
 
   const options = [
     {
-      key: "trial",
-      trial: true,
-      yearly: false,
-      label: trialCopy.label,
-      badge: trialCopy.badge,
-      price: 1,
-      strike: INTRO_PRICE,
-      unit: trialCopy.unit,
-    },
-    {
       key: "monthly",
-      trial: false,
       yearly: false,
-      label: t.monthly,
-      badge: t.introBadge,
-      price: monthlyPrice,
-      strike: monthly.strike,
-      unit: t.perMonth,
+      label: trialEligible ? trialCopy.label : t.monthly,
+      badge: trialEligible ? trialCopy.badge : t.introBadge,
+      price: trialEligible ? 1 : monthlyPrice,
+      strike: trialEligible ? INTRO_PRICE : monthly.strike,
+      unit: trialEligible ? trialCopy.unit : t.perMonth,
     },
     {
       key: "yearly",
-      trial: false,
       yearly: true,
       label: t.yearly,
       badge: t.yearlyBadge,
