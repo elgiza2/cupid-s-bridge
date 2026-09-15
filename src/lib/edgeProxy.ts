@@ -68,15 +68,13 @@ export function installEdgeFunctionProxy(): void {
       const headers = new Headers(request.headers);
       headers.set("x-edge-base", match.base);
 
-      const response = await originalFetch(
-        new Request(proxiedUrl, {
-          method: request.method,
-          headers,
-          body: request.method === "GET" || request.method === "HEAD" ? undefined : request.body,
-          // Streaming a request body requires half duplex.
-          ...({ duplex: "half" } as Record<string, unknown>),
-        }),
-      );
+      const hasBody = request.method !== "GET" && request.method !== "HEAD";
+      const body = hasBody ? await request.arrayBuffer() : undefined;
+      const response = await originalFetch(proxiedUrl, {
+        method: request.method,
+        headers,
+        body,
+      });
 
       // A static host without a server runtime answers with its HTML fallback;
       // in that case fall back to the direct call rather than failing.
