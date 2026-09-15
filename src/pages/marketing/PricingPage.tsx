@@ -215,6 +215,9 @@ const PricingPage = () => {
   useEffect(() => {
     setLocalMoney(detectLocalMoney());
   }, []);
+  // The $1 trial is a one-time offer; after it is used the card shows the $7
+  // first month in its place and the trial never returns.
+  const trialEligible = useIntroTrialEligible();
   const [sidebarCollapsed] = useSidebarCollapsed();
   const PLANS = brandText(RAW_PLANS);
   const FAQS = brandText(RAW_FAQS);
@@ -915,7 +918,8 @@ const PricingPage = () => {
                     // Monthly Pro leads with the $1 / 3-day trial: it renews into the
                     // $7 intro month automatically, so the intro price is the follow-up,
                     // not the headline.
-                    const showTrialOffer = p.tier === "pro" && !isYearly && !isCurrent;
+                    const showTrialOffer =
+                      p.tier === "pro" && !isYearly && !isCurrent && trialEligible;
                     const isLower = thisIdx < curIdx;
                     const ctaLabel = isCurrent
                       ? "Current plan"
