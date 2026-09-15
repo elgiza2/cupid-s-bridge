@@ -411,18 +411,20 @@ export default function MobilePricingScreen({
                   <span
                     className={`flex items-baseline gap-2 tabular-nums ${isAr ? "flex-row-reverse" : ""} justify-start`}
                   >
+                    {/* The local currency is the price, not a footnote: the
+                        dollar amount moves to the small secondary line. */}
                     <span className={`${compact ? "text-[15px]" : "text-[16px]"} font-semibold`} style={{ color: c.text }}>
-                      ${opt.price}
+                      {localAmount(opt.price) ?? `$${opt.price}`}
                     </span>
                     <span className="text-[11px]" style={{ color: c.muted }}>
                       {opt.unit}
                     </span>
                     <span className="text-[11.5px] line-through" style={{ color: c.faint }}>
-                      ${opt.strike}
+                      {localAmount(opt.strike) ?? `$${opt.strike}`}
                     </span>
-                    {localPrice(opt.price) ? (
+                    {localAmount(opt.price) ? (
                       <span className="text-[11px]" style={{ color: c.faint }}>
-                        {localPrice(opt.price)}
+                        ${opt.price}
                       </span>
                     ) : null}
                   </span>
