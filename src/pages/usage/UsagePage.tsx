@@ -248,8 +248,10 @@ const usageCss = `
 .usg-list { padding: 2px 12px; }
 .usg-item { display: flex; align-items: center; gap: 10px; padding: 12px 0; border-bottom: 1px solid var(--mn-sep); }
 .usg-item:last-child { border-bottom: 0; }
-.usg-item-title { flex: 1; font-size: 13.5px; line-height: 1.35; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; }
-.usg-item-cost { font-size: 13px; color: var(--mn-muted); }
+.usg-item-title { flex: 1; font-size: 13.5px; line-height: 1.35; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.usg-item-title small { font-size: 10.5px; color: var(--mn-muted); }
+.usg-item-cost { font-size: 13px; color: var(--mn-muted); font-variant-numeric: tabular-nums; }
+.usg-item-cost.usg-plus { color: #10b981; }
 .usg-state { display: flex; align-items: center; justify-content: center; padding: 36px 0; color: var(--mn-muted); font-size: 13px; }
 .usg-spacer { height: env(safe-area-inset-bottom, 0px); }
 .usg-rise { animation: usg-rise .32s cubic-bezier(.22,.61,.36,1) both; }
